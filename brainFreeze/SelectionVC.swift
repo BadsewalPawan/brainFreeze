@@ -38,15 +38,6 @@ class SelectionVC: UIViewController {
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         let RushVC = segue.destination as! RushVC
         RushVC.receivedgameMode = gameMode
-        RushVC.iHigestScore = iHigestScore
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        if (iLastScore > iHigestScore){
-            iHigestScore = iLastScore
-            higestScorelbl.text = String(iHigestScore)
-        }
-        lastScorelbl.text = String(iLastScore)
     }
     
     override func viewDidLoad() {

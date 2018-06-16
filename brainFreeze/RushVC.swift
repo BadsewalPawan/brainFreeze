@@ -47,6 +47,7 @@ class RushVC: UIViewController {
     
     
     func generateQuestion(){
+        resetBackground()
         if (receivedgameMode == "mixed"){
             switch arc4random_uniform(4){
             case 0:
@@ -145,6 +146,29 @@ class RushVC: UIViewController {
         AudioPlayer.play()
     }
     
+    func wrongAnswer(){
+        playIncorrectSound()
+        iWrongCount += 1
+        switch iWrongCount {
+        case 1:
+            wrongAns1.image = UIImage(named: "wrongAns")
+            timer = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(generateNextQuestion), userInfo: nil, repeats: false)
+        case 2:
+            wrongAns2.image = UIImage(named: "wrongAns")
+            timer = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(generateNextQuestion), userInfo: nil, repeats: false)
+        case 3:
+            wrongAns3.image = UIImage(named: "wrongAns")
+            timer = Timer.scheduledTimer(timeInterval: 3, target: self, selector: #selector(goToSelectionVC), userInfo: nil, repeats: false)
+        default:
+            break
+        }
+    }
+    
+    func resetBackground(){
+        uiViewTimer.startLocation = 0
+        uiViewTimer.endLocation = 0.01
+        randomArray.removeAll()
+    }
     
     @objc func generateNextQuestion(){
         generateQuestion()
@@ -163,10 +187,10 @@ class RushVC: UIViewController {
             UIApplication.shared.beginIgnoringInteractionEvents()
             for btn in btnArray{
                 if(btn.titleLabel?.text == String(iAnswer)){
-                    btn.backgroundColor = UIColor.green}
+                    btn.backgroundColor = UIColor(red: 88/255, green: 187/255, blue: 92/255, alpha: 1)}
             }
             playIncorrectSound()
-            timer = Timer.scheduledTimer(timeInterval: 3, target: self, selector: #selector(goToSelectionVC), userInfo: nil, repeats: false)
+            wrongAnswer()
         }
     }
     
@@ -174,12 +198,9 @@ class RushVC: UIViewController {
     @IBAction func checkAnswer(_ sender: UIButton) {
         timer.invalidate()
         UIApplication.shared.beginIgnoringInteractionEvents()
-        uiViewTimer.startLocation = 0
-        uiViewTimer.endLocation = 0.01
-        randomArray.removeAll()
         for btn in btnArray{
             if(btn.titleLabel?.text == String(iAnswer)){
-                btn.backgroundColor = UIColor.green}
+                btn.backgroundColor = UIColor(red: 88/255, green: 187/255, blue: 92/255, alpha: 1)}
         }
         numRange = UInt32(Int(numRange)+10)
         if(sender.titleLabel?.text == String(iAnswer)){
@@ -192,22 +213,8 @@ class RushVC: UIViewController {
             }
             timer = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(generateNextQuestion), userInfo: nil, repeats: false)
         }else{
-            playIncorrectSound()
-            iWrongCount += 1
-            sender.backgroundColor = UIColor.red
-            switch iWrongCount {
-            case 1:
-                wrongAns1.image = UIImage(named: "wrongAns")
-                timer = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(generateNextQuestion), userInfo: nil, repeats: false)
-            case 2:
-                wrongAns2.image = UIImage(named: "wrongAns")
-                timer = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(generateNextQuestion), userInfo: nil, repeats: false)
-            case 3:
-                wrongAns3.image = UIImage(named: "wrongAns")
-                timer = Timer.scheduledTimer(timeInterval: 3, target: self, selector: #selector(goToSelectionVC), userInfo: nil, repeats: false)
-            default:
-                break
-            }
+            sender.backgroundColor = UIColor(red: 190/255, green: 55/255, blue: 41/255, alpha: 1)
+            wrongAnswer()
         }
     }
     
@@ -220,12 +227,6 @@ class RushVC: UIViewController {
         wrongAns1.image = UIImage(named: "multiply")
         wrongAns2.image = UIImage(named: "multiply")
         wrongAns3.image = UIImage(named: "multiply")
-    }
-
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        let SelectionVC = segue.destination as! SelectionVC
-        SelectionVC.iLastScore = iScoreCount
-        SelectionVC.iHigestScore = iHigestScore
     }
     
     override func didReceiveMemoryWarning() {
