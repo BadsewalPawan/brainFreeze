@@ -11,11 +11,12 @@ import UIKit
 class SelectionVC: UIViewController {
     
     var gameMode:String!
-    var iLastScore:Int = 0
-    var iHigestScore:Int = 0
+    var iLastScore:Int! = 0
+    var iHighScore:Int! = 0
+    var iHighScoreDefault = UserDefaults.standard
     
-    @IBOutlet var lastScorelbl: UILabel!
-    @IBOutlet var higestScorelbl: UILabel!
+    @IBOutlet var highScorelbl: UILabel!
+    
     
     @IBAction func selectionAction(_ sender: UIButton) {
         switch sender.tag {
@@ -42,20 +43,22 @@ class SelectionVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        if(iHighScoreDefault.value(forKey: "HighScore") == nil ){
+            iHighScore = 0
+        }else{
+            iHighScore = iHighScoreDefault.value(forKey: "HighScore") as? Int
+        }
+        if(iLastScore > iHighScore){
+            iHighScore = iLastScore
+            iHighScoreDefault.set(iHighScore, forKey: "HighScore")
+            iHighScoreDefault.synchronize()
+        }
+        highScorelbl.text = "Higest score " + String(iHighScore)
     }
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
+    
+    
 }

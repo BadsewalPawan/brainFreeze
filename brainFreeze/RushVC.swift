@@ -12,7 +12,6 @@ import AVFoundation
 class RushVC: UIViewController {
     
     var iRandomSpot:Int!
-    var iCorrectCount:Int = 0
     var iWrongCount:Int = 0
     var iScoreCount:Int = 0
     var iCorrctBtnTag:Int?
@@ -21,7 +20,7 @@ class RushVC: UIViewController {
     var iFirstNum:Int!
     var iSecondNum:Int!
     var iAnswer:Int! = 0
-    var iOptAccuracy:Int! = 50
+    var iOptAccuracy:Int = 100
     var iFirstOption:Int! = 0
     var iSecondOption:Int! = 0
     var iThirdOption:Int! = 0
@@ -29,9 +28,9 @@ class RushVC: UIViewController {
     var randomArray = [Int]()
     var btnArray = [UIButton]()
     var timer:Timer = Timer()
-    var numRange:UInt32! = 10
+    var numRange:UInt32! = 50
     var dummyVariable:Int = 0
-    var iHigestScore:Int!
+    var dummyBool:Bool! = false
     var AudioPlayer: AVAudioPlayer!
     
     
@@ -44,6 +43,7 @@ class RushVC: UIViewController {
     @IBOutlet var secondOptBtn: UIButton!
     @IBOutlet var thirdOptBtn: UIButton!
     @IBOutlet var fourthOptBtn: UIButton!
+    @IBOutlet var scorelbl: UILabel!
     
     
     func generateQuestion(){
@@ -66,19 +66,13 @@ class RushVC: UIViewController {
         UIApplication.shared.endIgnoringInteractionEvents()
         iFirstNum = Int(arc4random_uniform(UInt32(numRange)))
         iSecondNum = Int(arc4random_uniform(UInt32(numRange)))
-        
         switch gameMode {
         case "add":
             questionLbl.text = String(iFirstNum) + " + " + String(iSecondNum)
             iAnswer = iFirstNum + iSecondNum
         case "subtract":
-            if (iFirstNum > iSecondNum ){
-                questionLbl.text = String(iFirstNum) + " - " + String(iSecondNum)
-                iAnswer = iFirstNum - iSecondNum
-            }else{
-                questionLbl.text = String(iSecondNum) + " - " + String(iFirstNum)
-                iAnswer = iSecondNum - iFirstNum
-            }
+            questionLbl.text = String(iFirstNum) + " - " + String(iSecondNum)
+            iAnswer = iFirstNum - iSecondNum
         case "multiply":
             questionLbl.text = String(iFirstNum) + " X " + String(iSecondNum)
             iAnswer = iFirstNum * iSecondNum
@@ -97,27 +91,29 @@ class RushVC: UIViewController {
         default:
             break
         }
-        
-        repeat{
-            iFirstOption = Int(arc4random_uniform(UInt32(iAnswer + iOptAccuracy)))
-            iSecondOption = Int(arc4random_uniform(UInt32(iAnswer + iOptAccuracy + 10)))
-            iThirdOption = Int(arc4random_uniform(UInt32(iAnswer + iOptAccuracy + 20)))
-        }while (iAnswer == iFirstOption || iAnswer == iSecondOption || iAnswer == iThirdOption && iFirstOption != iSecondOption && iFirstOption != iThirdOption)
+        iFirstOption = generateOpt(targetAccuracy: 10)
+        iSecondOption = generateOpt(targetAccuracy: 20)
+        iThirdOption = generateOpt(targetAccuracy: 30)
         optionArray = [iFirstOption, iSecondOption, iThirdOption, iAnswer]
-        
         for _ in optionArray{
             dummyVariable = Int(arc4random_uniform(UInt32((optionArray.count))))
             randomArray.append(optionArray[dummyVariable])
             optionArray.remove(at: dummyVariable)
         }
         print(randomArray)
-        dummyVariable = 0
         for btn in btnArray{
             btn.setTitle(String(randomArray[dummyVariable]), for: UIControlState())
             btn.backgroundColor = UIColor.clear
             dummyVariable += 1
         }
-        dummyVariable = 0
+    }
+    
+    func generateOpt(targetAccuracy:Int) -> Int{
+        dummyVariable = Int(arc4random_uniform(2))
+        if (dummyVariable == 0){
+            return iAnswer + (iOptAccuracy + targetAccuracy)
+        }else{
+            return iAnswer - (iOptAccuracy + targetAccuracy)}
     }
     
     func playCorrectSound(){
@@ -202,14 +198,19 @@ class RushVC: UIViewController {
             if(btn.titleLabel?.text == String(iAnswer)){
                 btn.backgroundColor = UIColor(red: 88/255, green: 187/255, blue: 92/255, alpha: 1)}
         }
-        numRange = UInt32(Int(numRange)+10)
+        numRange = UInt32(Int(numRange)+50)
         if(sender.titleLabel?.text == String(iAnswer)){
             playCorrectSound()
             iScoreCount += 1
-            iCorrectCount += 1
-            if (iOptAccuracy > 0){
-                if ((iCorrectCount % 5) == 0){
-                    iOptAccuracy = Int(iOptAccuracy) - 5}
+            scorelbl.text = "Score " + String(iScoreCount)
+            if (dummyBool){
+                iScoreCount += 1
+                if(iOptAccuracy > 0){
+                    iOptAccuracy -= 10}
+                dummyBool = !dummyBool
+                print(iOptAccuracy)
+            }else{
+                dummyBool = !dummyBool
             }
             timer = Timer.scheduledTimer(timeInterval: 2, target: self, selector: #selector(generateNextQuestion), userInfo: nil, repeats: false)
         }else{
@@ -219,8 +220,14 @@ class RushVC: UIViewController {
     }
     
     
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?){
+        let selectionVC = segue.destination as! SelectionVC
+        selectionVC.iLastScore = iScoreCount
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        scorelbl.text = "Score  " + String(iScoreCount)
         gameMode = receivedgameMode
         btnArray = [firstOptBtn, secondOptBtn, thirdOptBtn, fourthOptBtn]
         generateQuestion()
